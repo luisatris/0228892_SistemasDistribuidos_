@@ -6,36 +6,53 @@ import (
 	"net/http"
 )
 
-type User struct { //estructura de el tipo de objeto User
+type User struct { // define la estructura del usuario
 	Firstname string `json:"firstname"`
 	Lastname  string `json:"lastname"`
 	Age       int    `json:"age"`
 }
 
+func encodeHandler(w http.ResponseWriter, r *http.Request) {
+	// revisa que el request sea valido (GET)
+	if r.Method != http.MethodGet {
+		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
+		return
+	}
+
+	peter := User{
+		Firstname: "John",
+		Lastname:  "Doe",
+		Age:       25,
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(peter); err != nil {
+		http.Error(w, "Error encoding JSON", http.StatusInternalServerError)
+	}
+}
+
+func decodeHandler(w http.ResponseWriter, r *http.Request) {
+	// checa que el metodo sea POST
+	if r.Method != http.MethodPost {
+		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var user User
+	if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
+		http.Error(w, "Invalid input", http.StatusBadRequest)
+		return
+	}
+
+	fmt.Fprintf(w, "%s %s is %d years old!", user.Firstname, user.Lastname, user.Age)
+}
+
 func main() {
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) { //genera un mensaje de bienvenida en cuanto alguien ingresa al sitio web
-		fmt.Fprintf(w, "Welcome to my website!")
-	})
+	http.HandleFunc("/encode", encodeHandler) // Register the encode handler
+	http.HandleFunc("/decode", decodeHandler) // Register the decode handler
 
-	http.HandleFunc("/encode", func(w http.ResponseWriter, r *http.Request) {
-		peter := User{
-			Firstname: "John",
-			Lastname:  "Doe",
-			Age:       25,
-		}
-
-		http.HandleFunc("/decode", func(w http.ResponseWriter, r *http.Request) {
-			var user User
-			json.NewDecoder(r.Body).Decode(&user)
-
-			fmt.Fprintf(w, "%s %s is %d years old!", user.Firstname, user.Lastname, user.Age)
-		})
-
-		json.NewEncoder(w).Encode(peter)
-	})
-
-	fs := http.FileServer(http.Dir("static/"))                //permite servir imagenes , css y javascript
-	http.Handle("/static/", http.StripPrefix("/static/", fs)) //apuntya al URL
-
-	http.ListenAndServe(":80", nil) //permite aceptar conecciones a nuestro servidor
+	fmt.Println("Server is running on http://localhost:8080")
+	if err := http.ListenAndServe(":8080", nil); err != nil {
+		fmt.Println("Error starting server:", err)
+	}
 }

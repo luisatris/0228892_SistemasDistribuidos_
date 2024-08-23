@@ -7,12 +7,12 @@ import (
 	"sync"
 )
 
-type Record struct {
+type Record struct { //aqui se establece la estructura del record
 	Value  []byte `json:"value"`
 	Offset uint64 `json:"offset"`
 }
 
-type Log struct {
+type Log struct { //Aqui se establece la estructura de nuestro log
 	mu      sync.Mutex
 	records []Record
 }
@@ -20,24 +20,25 @@ type Log struct {
 var logfile = Log{records: []Record{}}
 var offsetCounter uint64 = 0
 
-// Handler unificado para manejar las solicitudes de escritura y lectura del log.
+//Este handler nos permite manejar las solicitudes de escritura y lectura del Log.
 func handler(w http.ResponseWriter, r *http.Request) {
 	switch r.URL.Path {
 	case "/write":
-		// Caso para escribir en el log
+		// En este caso escribimos en el Log
 		var record Record
 
 		err := json.NewDecoder(r.Body).Decode(&record)
 		if err != nil {
-			http.Error(w, "Error deserializando el JSON", http.StatusBadRequest)
+			http.Error(w, "Error deserializando el JSON", http.StatusBadRequest)//nos indica si hay algun error al deserializar el JSON
 			return
 		}
 
+		//aqui se maneja el offset
 		record.Offset = offsetCounter
 		offsetCounter++
 
 		logfile.mu.Lock()
-		logfile.records = append(logfile.records, record)
+		logfile.records = append(logfile.records, record) //se agrega el nuevo record
 		logfile.mu.Unlock()
 
 		w.Header().Set("Content-Type", "application/json")
@@ -45,14 +46,14 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(record)
 
 	case "/read":
-		// Caso para leer desde el log
+		// este caso se utiliza para leer el Log
 		var requestData struct {
 			Offset *uint64 `json:"offset"`
 		}
 
 		err := json.NewDecoder(r.Body).Decode(&requestData)
 		if err != nil {
-			http.Error(w, "Error deserializando el JSON", http.StatusBadRequest)
+			http.Error(w, "Error deserializando el JSON", http.StatusBadRequest)//nos indica si hay error
 			return
 		}
 
@@ -67,12 +68,15 @@ func handler(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
-		http.Error(w, "Registro no encontrado", http.StatusNotFound)
+		http.Error(w, "Registro no encontrado", http.StatusNotFound)//nos indica si el registro no se ha encontrado
 
 	default:
-		http.Error(w, "Ruta no encontrada", http.StatusNotFound)
+		http.Error(w, "Ruta no encontrada", http.StatusNotFound)//nos indica si la ruta no dfue encontrada
 	}
 }}
+
+
+
 func main() {
 	http.HandleFunc("/", handler)
 

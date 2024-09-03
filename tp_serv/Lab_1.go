@@ -20,7 +20,7 @@ type Log struct { //Aqui se establece la estructura de nuestro log
 var logfile = Log{records: []Record{}}
 var offsetCounter uint64 = 0
 
-//Este handler nos permite manejar las solicitudes de escritura y lectura del Log.
+// Este handler nos permite manejar las solicitudes de escritura y lectura del Log.
 func handler(w http.ResponseWriter, r *http.Request) {
 	switch r.URL.Path {
 	case "/write":
@@ -29,7 +29,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 
 		err := json.NewDecoder(r.Body).Decode(&record)
 		if err != nil {
-			http.Error(w, "Error deserializando el JSON", http.StatusBadRequest)//nos indica si hay algun error al deserializar el JSON
+			http.Error(w, "Error deserializando el JSON", http.StatusBadRequest) //nos indica si hay algun error al deserializar el JSON
 			return
 		}
 
@@ -53,7 +53,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 
 		err := json.NewDecoder(r.Body).Decode(&requestData)
 		if err != nil {
-			http.Error(w, "Error deserializando el JSON", http.StatusBadRequest)//nos indica si hay error
+			http.Error(w, "Error deserializando el JSON", http.StatusBadRequest) //nos indica si hay error
 			return
 		}
 
@@ -68,14 +68,12 @@ func handler(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
-		http.Error(w, "Registro no encontrado", http.StatusNotFound)//nos indica si el registro no se ha encontrado
+		http.Error(w, "Registro no encontrado", http.StatusNotFound) //nos indica si el registro no se ha encontrado
 
 	default:
-		http.Error(w, "Ruta no encontrada", http.StatusNotFound)//nos indica si la ruta no dfue encontrada
+		http.Error(w, "Ruta no encontrada", http.StatusNotFound) //nos indica si la ruta no dfue encontrada
 	}
-}}
-
-
+}
 
 func main() {
 	http.HandleFunc("/", handler)

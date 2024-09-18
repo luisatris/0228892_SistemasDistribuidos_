@@ -1,3 +1,5 @@
+/*
+
 package Index
 
 import (
@@ -133,3 +135,4 @@ func main() {
 		log.Fatalf("Fallo al iniciar el servidor: %v", err)
 	}
 }
+*/

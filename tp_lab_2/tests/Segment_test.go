@@ -1,3 +1,13 @@
+package log
+
+import (
+	"io"
+	"os"
+	"testing"
+
+	api "example.com/tpmod/api/v1"
+)
+
 func TestSegment(t *testing.T) {
 	dir, _ := os.MkdirTemp("", "segment-test")
 	defer os.RemoveAll(dir)

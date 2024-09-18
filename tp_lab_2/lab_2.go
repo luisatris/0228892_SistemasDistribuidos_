@@ -26,12 +26,12 @@ type CommitLog struct {
 	nextOffset uint64
 }
 
-/*
+
 type Log struct {
 	mu      sync.Mutex
 	records []Record
 }
-*/
+
 
 var logfile = Log{records: []Record{}}
 var offsetCounter uint64 = 0

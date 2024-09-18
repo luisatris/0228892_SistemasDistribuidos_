@@ -1,4 +1,4 @@
-package Index
+package Log
 
 import (
 	"encoding/binary"
@@ -20,22 +20,17 @@ type Index struct {
 	size uint64
 }
 
-func NewIndex(filePath string, width uint64) (*Index, error) {
-	file, err := os.OpenFile(filePath, os.O_RDWR|os.O_CREATE, 0666)
+func NewIndex(pf *os.File, c Config) (*Index, error) {
+	// Usar el archivo recibido directamente sin abrirlo de nuevo
+	data, err := mmap.Map(pf, mmap.RDWR, 0)
 	if err != nil {
-		return nil, fmt.Errorf("error opening file: %v", err)
-	}
-
-	data, err := mmap.Map(file, mmap.RDWR, 0)
-	if err != nil {
-		file.Close()
 		return nil, fmt.Errorf("error mapping file: %v", err)
 	}
 
 	return &Index{
-		file: file,
+		file: pf,
 		mmap: data,
-		size: width,
+		size: c.IndexWidth, // Suponiendo que 'Width' es un campo de la estructura 'Config'
 	}, nil
 }
 
@@ -62,26 +57,25 @@ func (i *Index) Read(in int64) (uint32, uint64, error) {
 	return off, p, nil
 }
 
-func (i *Index) Write(in int64, off uint32, pos uint64) error {
+func (i *Index) Write(off uint32, pos uint64) error {
 	if i.size == 0 {
 		return fmt.Errorf("index not initialized")
 	}
 
-	if in == -1 {
+	// Calcular la posición del índice basado en 'off'
+	idxPos := uint64(off) * EntryWidth
+	if idxPos+EntryWidth > uint64(i.size) {
 		return fmt.Errorf("index out of range")
 	}
 
-	idxPos := uint64(in) * EntryWidth
-	if i.size < idxPos+EntryWidth {
-		return fmt.Errorf("index out of range")
-	}
-
+	// Crear los bytes para 'off' y 'pos'
 	offBytes := make([]byte, OffWidth)
 	posBytes := make([]byte, PossWidth)
 
 	binary.LittleEndian.PutUint32(offBytes, off)
 	binary.LittleEndian.PutUint64(posBytes, pos)
 
+	// Copiar los bytes en la memoria mapeada
 	copy(i.mmap[idxPos:idxPos+OffWidth], offBytes)
 	copy(i.mmap[idxPos+OffWidth:idxPos+EntryWidth], posBytes)
 
@@ -93,4 +87,8 @@ func (i *Index) Close() error {
 		return fmt.Errorf("error unmapping file: %v", err)
 	}
 	return i.file.Close()
+}
+
+func (i *Index) Name() string {
+	return i.file.Name()
 }

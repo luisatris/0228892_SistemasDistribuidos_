@@ -1,4 +1,4 @@
-package Index
+package Log
 
 import (
 	"bufio"
@@ -23,13 +23,7 @@ type store struct {
 }
 
 // Aqui en el newstore, Abrimos un archivo (si no existe, se crea) y se inizializa el buffer
-func NewStore(filePath string) (*store, error) {
-	// Abre el archivo o lo crea si no existe
-	f, err := os.OpenFile(filePath, os.O_RDWR|os.O_CREATE, 0666)
-	if err != nil {
-		return nil, err
-	}
-
+func NewStore(f *os.File) (*store, error) {
 	// Obtén el tamaño actual del archivo
 	stat, err := f.Stat()
 	if err != nil {
@@ -45,33 +39,34 @@ func NewStore(filePath string) (*store, error) {
 }
 
 // usamos sync.Mutex para bloquear accesos no permitidos. Luego escribe el tamaño de los datos antes de escribir los datos realies. Una vez que fue comprobado, escibimos los datos del archivo y se actualiza el tamaño de los archivos
-func (s *store) Append(data []byte) error {
+func (s *store) Append(data []byte) (off uint64, n uint64, err error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
 	// Escribe el tamaño de los datos antes de escribir los datos reales
 	if err := binary.Write(s.buf, enc, uint64(len(data))); err != nil {
-		return err
+		return 0, 0, err
 	}
 
 	// Escribe los datos
 	if _, err := s.buf.Write(data); err != nil {
-		return err
+		return 0, 0, err
 	}
 
 	// Asegúrate de que todos los datos se escriban en el archivo
 	if err := s.buf.Flush(); err != nil {
-		return err
+		return 0, 0, err
 	}
 
 	// Actualiza el tamaño del archivo
 	s.size += uint64(len(data)) + lenWidth
 
-	return nil
+	off = s.size - uint64(len(data)) - lenWidth
+	return off, uint64(n), nil
 }
 
 // inicia al pricnipio del archiuvo y lee los datos usando el tamaño previamente establecido. Va acumulando los datos leidos en un solo slice de bytes
-func (s *store) Read() ([]byte, error) {
+func (s *store) Read(pos uint64) ([]byte, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 

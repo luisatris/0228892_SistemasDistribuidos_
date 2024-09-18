@@ -1,4 +1,4 @@
-package Index
+package Log
 
 import (
 	"fmt"
@@ -33,8 +33,8 @@ func newSegment(dir string, baseOffset uint64, c Config) (*segment, error) {
 	}
 
 	// Crear una nueva instancia de store usando el archivo abierto
-	if s.store, err = NewStore(storeFilePath); err != nil {
-		storeFile.Close() // Asegúrate de cerrar el archivo en caso de error
+	if s.store, err = NewStore(storeFile); err != nil { // Cambiado a storeFile
+		storeFile.Close() // Cerrar el archivo en caso de error
 		return nil, err
 	}
 
@@ -42,14 +42,14 @@ func newSegment(dir string, baseOffset uint64, c Config) (*segment, error) {
 	indexFilePath := path.Join(dir, fmt.Sprintf("%d.index", baseOffset))
 	indexFile, err := os.OpenFile(indexFilePath, os.O_RDWR|os.O_CREATE, 0644)
 	if err != nil {
-		s.store.Close() // Asegúrate de cerrar el archivo store en caso de error
+		s.store.Close() // Cerrar el archivo store en caso de error
 		return nil, err
 	}
 
 	// Crear una nueva instancia de index usando el archivo abierto
-	if s.index, err = NewIndex(indexFilePath, c.IndexWidth); err != nil {
-		indexFile.Close() // Asegúrate de cerrar el archivo en caso de error
-		s.store.Close()   // Asegúrate de cerrar el archivo store en caso de error
+	if s.index, err = NewIndex(indexFile, c); err != nil { // Cambiado para pasar c
+		indexFile.Close() // Cerrar el archivo en caso de error
+		s.store.Close()   // Cerrar el archivo store en caso de error
 		return nil, err
 	}
 
@@ -82,17 +82,18 @@ func (s *segment) IsMaxed() bool {
 }
 
 func (s *segment) Append(record *api.Record) (uint64, error) {
-	// Agregar datos al store
-	if err := s.store.Append(record.Data); err != nil {
+	// Agregar datos al store y capturar los valores devueltos
+	off, n, err := s.store.Append(record.Data) // Captura los tres valores
+	if err != nil {
 		return 0, err
 	}
 
 	// Calcular el nuevo offset
-	dataSize := len(record.Data)
-	newOffset := s.nextOffset
+	dataSize := n // Usa n para el tamaño de los datos escritos
+	newOffset := off
 
 	// Actualizar el índice
-	if err := s.index.Write(int64(newOffset-s.baseOffset), uint32(dataSize), newOffset); err != nil {
+	if err := s.index.Write(uint32(newOffset-s.baseOffset), newOffset); err != nil { // Cambiado para pasar solo dos argumentos
 		return 0, err
 	}
 

@@ -1,4 +1,4 @@
-package log
+package Log
 
 import (
 	"io"
@@ -15,7 +15,7 @@ func TestIndex(t *testing.T) {
 
 	c := Config{}
 	c.Segment.MaxIndexBytes = 1024
-	idx, err := newIndex(f, c)
+	idx, err := NewIndex(f, c)
 	require.NoError(t, err)
 	_, _, err = idx.Read(-1)
 	require.Error(t, err)
@@ -43,12 +43,10 @@ func TestIndex(t *testing.T) {
 
 	// index should build its state from the existing file
 	f, _ = os.OpenFile(f.Name(), os.O_RDWR, 0600)
-	idx, err = newIndex(f, c)
+	idx, err = NewIndex(f, c)
 	require.NoError(t, err)
 	off, pos, err := idx.Read(-1)
 	require.NoError(t, err)
 	require.Equal(t, uint32(1), off)
 	require.Equal(t, entries[1].Pos, pos)
 }
-
-//hello luis

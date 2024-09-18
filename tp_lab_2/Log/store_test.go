@@ -1,4 +1,4 @@
-package log
+package Log
 
 import (
 	"os"
@@ -17,13 +17,13 @@ func TestStoreAppendRead(t *testing.T) {
 	require.NoError(t, err)
 	defer os.Remove(f.Name())
 
-	s, err := newStore(f)
+	s, err := NewStore(f)
 	require.NoError(t, err)
 
 	testAppend(t, s)
 	testRead(t, s)
 	testReadAt(t, s)
-	s, err = newStore(f)
+	s, err = NewStore(f)
 	require.NoError(t, err)
 	testRead(t, s)
 }
@@ -70,7 +70,7 @@ func TestStoreClose(t *testing.T) {
 	f, err := os.CreateTemp("", "store_close_test")
 	require.NoError(t, err)
 	defer os.Remove(f.Name())
-	s, err := newStore(f)
+	s, err := NewStore(f)
 	require.NoError(t, err)
 	_, _, err = s.Append(write)
 	require.NoError(t, err)

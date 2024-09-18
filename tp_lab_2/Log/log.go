@@ -1,4 +1,4 @@
-package Index
+package Log
 
 import (
 	"fmt"

@@ -1,4 +1,4 @@
-package Index
+package Log
 
 // SegmentConfig contiene configuraciones específicas para los segmentos.
 type SegmentConfig struct {

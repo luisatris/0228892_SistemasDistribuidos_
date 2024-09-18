@@ -1,4 +1,4 @@
-package log
+package Log
 
 import (
 	"io"
@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	api "example.com/tpmod/api/v1"
+	"github.com/stretchr/testify/require"
 )
 
 func TestSegment(t *testing.T) {
@@ -16,7 +17,7 @@ func TestSegment(t *testing.T) {
 
 	c := Config{}
 	c.Segment.MaxStoreBytes = 1024
-	c.Segment.MaxIndexBytes = entWidth * 3
+	c.Segment.MaxIndexBytes = EntryWidth * 3
 
 	s, err := newSegment(dir, 16, c)
 	require.NoError(t, err)

@@ -6,7 +6,7 @@ import (
 	"path"
 	"strings"
 
-	api "example.com/tpmod/api/v1"
+	api "example.com/tpmod/Api/v1"
 )
 
 // segment maneja un segmento de almacenamiento y su índice.
@@ -83,7 +83,7 @@ func (s *segment) IsMaxed() bool {
 
 func (s *segment) Append(record *api.Record) (uint64, error) {
 	// Agregar datos al store y capturar los valores devueltos
-	off, n, err := s.store.Append(record.Data) // Captura los tres valores
+	off, n, err := s.store.Append(record.Value) // Captura los tres valores
 	if err != nil {
 		return 0, err
 	}
@@ -115,7 +115,7 @@ func (s *segment) Read(offset uint64) (*api.Record, error) {
 		return nil, err
 	}
 
-	return &api.Record{Data: data}, nil
+	return &api.Record{Value: data}, nil
 }
 
 // Remove elimina los archivos del segmento.

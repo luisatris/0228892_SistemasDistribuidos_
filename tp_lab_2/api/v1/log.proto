@@ -1,7 +1,8 @@
 syntax = "proto3";
+
 package log.v1;
 
-option go_package = "github.com/Robinthatdoesnotsuck/api/log_v1";
+option go_package = "tp_lab_2/Api/log_v1";
 
 message Record {
     bytes value = 1;
@@ -13,11 +14,6 @@ service Log {
     rpc Consume(ConsumeRequest) returns (ConsumeResponse) {}
     rpc ConsumeStream(ConsumeRequest) returns(stream ConsumeResponse) {}
     rpc ProduceStream(stream ProduceRequest) returns(stream ProduceResponse) {}
-}
-
-message Record {
-    bytes value = 1;
-    uint64 offset = 2;
 }
 
 message ProduceRequest {

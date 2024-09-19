@@ -10,7 +10,7 @@ import (
 	"strings"
 	"sync"
 
-	api "example.com/tpmod/api/v1"
+	api "example.com/tpmod/Api/v1"
 )
 
 type Log struct {

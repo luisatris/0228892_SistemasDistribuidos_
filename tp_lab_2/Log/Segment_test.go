@@ -5,7 +5,7 @@ import (
 	"os"
 	"testing"
 
-	api "example.com/tpmod/api/v1"
+	api "example.com/tpmod/Api/v1"
 	"github.com/stretchr/testify/require"
 )
 

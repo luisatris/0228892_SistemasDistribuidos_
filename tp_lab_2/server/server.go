@@ -3,7 +3,7 @@ package Server
 import (
 	"context"
 
-	logtp "example.com/tpmod/Api/v1" // Actualiza esta ruta según sea necesario
+	logtp "example.com/tpmod/Api/v1"
 
 	"google.golang.org/grpc"
 )
@@ -26,7 +26,7 @@ func NewGRPCServer(param *Parametros) (*grpc.Server, error) {
 	// Crear el servidor de log
 	srv, err := newgrpcServer(param)
 	if err != nil {
-		return nil, err // Manejar el error aquí
+		return nil, err
 	}
 
 	// Registrar el servidor de log

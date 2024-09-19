@@ -30,8 +30,8 @@ func NewHTTPServer(addr string, log *logpkg.Log) *http.Server {
 }
 
 func (s *HTTPServer) handleProduce(w http.ResponseWriter, r *http.Request) {
-	s.mu.Lock()         // Bloquear el mutex antes de escribir
-	defer s.mu.Unlock() // Asegurarse de desbloquear al final
+	s.mu.Lock() // Bloquear el mutex antes de escribir
+	defer s.mu.Unlock()
 
 	var req api.ProduceRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -39,7 +39,7 @@ func (s *HTTPServer) handleProduce(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	offset, err := s.Log.Append(req.Record) // Asegúrate de que req.Record es del tipo adecuado
+	offset, err := s.Log.Append(req.Record)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -52,8 +52,8 @@ func (s *HTTPServer) handleProduce(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *HTTPServer) handleConsume(w http.ResponseWriter, r *http.Request) {
-	s.mu.Lock()         // Bloquear el mutex antes de leer
-	defer s.mu.Unlock() // Asegurarse de desbloquear al final
+	s.mu.Lock() // Bloquear el mutex antes de leer
+	defer s.mu.Unlock()
 
 	// Obtener el offset de los parámetros de la URL
 	offsetStr := r.URL.Query().Get("offset")

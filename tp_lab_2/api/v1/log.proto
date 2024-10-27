@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package Api.v1;
+package log.v1;
 
 option go_package = "tp_lab_2/Api/log_v1";
 

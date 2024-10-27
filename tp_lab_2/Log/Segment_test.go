@@ -1,4 +1,4 @@
-package Log
+package log
 
 import (
 	"io"
@@ -17,7 +17,7 @@ func TestSegment(t *testing.T) {
 
 	c := Config{}
 	c.Segment.MaxStoreBytes = 1024
-	c.Segment.MaxIndexBytes = EntryWidth * 3
+	c.Segment.MaxIndexBytes = entWidth * 3
 
 	s, err := newSegment(dir, 16, c)
 	require.NoError(t, err)

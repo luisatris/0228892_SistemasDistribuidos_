@@ -1,7 +1,6 @@
-package Log
+package log
 
 import (
-	"fmt"
 	"io"
 	"os"
 	"path"
@@ -22,6 +21,8 @@ type Log struct {
 	activeSegment *segment
 	segments      []*segment
 }
+
+// END: begin
 
 // START: newlog
 func NewLog(dir string, c Config) (*Log, error) {
@@ -63,7 +64,8 @@ func (l *Log) setup() error {
 		if err = l.newSegment(baseOffsets[i]); err != nil {
 			return err
 		}
-
+		// baseOffset contains dup for index and store so we skip
+		// the dup
 		i++
 	}
 	if l.segments == nil {
@@ -105,7 +107,7 @@ func (l *Log) Read(off uint64) (*api.Record, error) {
 	}
 	// START: before
 	if s == nil || s.nextOffset <= off {
-		return nil, fmt.Errorf("offset out of range: %d", off)
+		return nil, api.ErrOffsetOutOfRange{Offset: off}
 	}
 	// END: before
 	return s.Read(off)
@@ -214,3 +216,5 @@ func (o *originReader) Read(p []byte) (int, error) {
 	o.off += int64(n)
 	return n, err
 }
+
+// END: reader

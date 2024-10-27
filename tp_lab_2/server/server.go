@@ -5,44 +5,66 @@ import (
 
 	logtp "example.com/tpmod/Api/v1"
 
+	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
+	grpc_auth "github.com/grpc-ecosystem/go-grpc-middleware/auth"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/peer"
+	"google.golang.org/grpc/status"
 )
 
-type Parametros struct {
-	Registro CommitLog
+type Config struct {
+	CommitLog  CommitLog
+	Authorizer Authorizer
 }
+
+const (
+	objectWildcard = "*"
+	produceAction  = "produce"
+	consumeAction  = "consume"
+)
 
 var _ logtp.LogServer = (*grpcServer)(nil)
 
 type grpcServer struct {
 	logtp.UnimplementedLogServer
-	Parametros *Parametros
+	*Config
 }
 
-func NewGRPCServer(param *Parametros) (*grpc.Server, error) {
-	// Crear un nuevo servidor gRPC
-	gsrv := grpc.NewServer()
-
-	// Crear el servidor de log
-	srv, err := newgrpcServer(param)
-	if err != nil {
-		return nil, err
-	}
-
-	// Registrar el servidor de log
-	logtp.RegisterLogServer(gsrv, srv)
-	return gsrv, nil
-}
-
-func newgrpcServer(param *Parametros) (*grpcServer, error) {
-	srv := &grpcServer{
-		Parametros: param,
+func newgrpcServer(config *Config) (srv *grpcServer, err error) {
+	srv = &grpcServer{
+		Config: config,
 	}
 	return srv, nil
 }
 
+func NewGRPCServer(config *Config, opts ...grpc.ServerOption) (*grpc.Server, error) {
+	opts = append(opts, grpc.StreamInterceptor(
+		grpc_middleware.ChainStreamServer(
+			grpc_auth.StreamServerInterceptor(authenticate),
+		)), grpc.UnaryInterceptor(grpc_middleware.ChainUnaryServer(
+		grpc_auth.UnaryServerInterceptor(authenticate),
+	)))
+	gsrv := grpc.NewServer(opts...)
+	srv, err := newgrpcServer(config)
+	if err != nil {
+		return nil, err
+	}
+	logtp.RegisterLogServer(gsrv, srv)
+	return gsrv, nil
+}
+
 func (s *grpcServer) Produce(ctx context.Context, req *logtp.ProduceRequest) (*logtp.ProduceResponse, error) {
-	offset, err := s.Parametros.Registro.Append(req.Record)
+
+	if err := s.Authorizer.Authorize(
+		subject(ctx),
+		objectWildcard,
+		produceAction,
+	); err != nil {
+		return nil, err
+	}
+	offset, err := s.CommitLog.Append(req.Record)
 	if err != nil {
 		return nil, err
 	}
@@ -50,7 +72,14 @@ func (s *grpcServer) Produce(ctx context.Context, req *logtp.ProduceRequest) (*l
 }
 
 func (s *grpcServer) Consume(ctx context.Context, req *logtp.ConsumeRequest) (*logtp.ConsumeResponse, error) {
-	record, err := s.Parametros.Registro.Read(req.Offset)
+	if err := s.Authorizer.Authorize(
+		subject(ctx),
+		objectWildcard,
+		consumeAction,
+	); err != nil {
+		return nil, err
+	}
+	record, err := s.CommitLog.Read(req.Offset)
 	if err != nil {
 		return nil, err
 	}
@@ -61,16 +90,13 @@ func (s *grpcServer) ProduceStream(stream logtp.Log_ProduceStreamServer) error {
 	for {
 		req, err := stream.Recv()
 		if err != nil {
-			if err == grpc.ErrClientConnClosing {
-				return nil // El cliente ha cerrado la conexión
-			}
 			return err
 		}
 		res, err := s.Produce(stream.Context(), req)
 		if err != nil {
 			return err
 		}
-		if err := stream.Send(res); err != nil {
+		if err = stream.Send(res); err != nil {
 			return err
 		}
 	}
@@ -80,16 +106,20 @@ func (s *grpcServer) ConsumeStream(req *logtp.ConsumeRequest, stream logtp.Log_C
 	for {
 		select {
 		case <-stream.Context().Done():
-			return nil // Salir si el contexto se cierra
+			return nil
 		default:
 			res, err := s.Consume(stream.Context(), req)
-			if err != nil {
+			switch err.(type) {
+			case nil:
+			case logtp.ErrOffsetOutOfRange:
+				continue
+			default:
 				return err
 			}
-			if err := stream.Send(res); err != nil {
+			if err = stream.Send(res); err != nil {
 				return err
 			}
-			req.Offset++ // Incrementa el offset para el siguiente registro
+			req.Offset++
 		}
 	}
 }
@@ -98,3 +128,34 @@ type CommitLog interface {
 	Append(*logtp.Record) (uint64, error)
 	Read(uint64) (*logtp.Record, error)
 }
+
+type Authorizer interface {
+	Authorize(subject, object, action string) error
+}
+
+func authenticate(ctx context.Context) (context.Context, error) {
+	peer, ok := peer.FromContext(ctx)
+	if !ok {
+		return ctx, status.New(
+			codes.Unknown,
+			"Can't find peer information",
+		).Err()
+	}
+	if peer.AuthInfo == nil {
+		return ctx, status.New(
+			codes.Unauthenticated,
+			"No security on transport protocol",
+		).Err()
+	}
+
+	tlsInfo := peer.AuthInfo.(credentials.TLSInfo)
+	subject := tlsInfo.State.VerifiedChains[0][0].Subject.CommonName
+	ctx = context.WithValue(ctx, subjectContextKey{}, subject)
+	return ctx, nil
+}
+
+func subject(ctx context.Context) string {
+	return ctx.Value(subjectContextKey{}).(string)
+}
+
+type subjectContextKey struct{}

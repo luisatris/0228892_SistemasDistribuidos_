@@ -1,94 +1,93 @@
-package Log
+package log
 
 import (
-	"encoding/binary"
-	"fmt"
+	"io"
 	"os"
 
-	"github.com/edsrzf/mmap-go"
+	"github.com/tysonmote/gommap"
 )
 
-const (
-	OffWidth   uint64 = 10
-	PossWidth  uint64 = 20
-	EntryWidth uint64 = OffWidth + PossWidth
+var (
+	offWidth uint64 = 4
+	posWidth uint64 = 8
+	entWidth        = offWidth + posWidth
 )
 
-type Index struct {
+type index struct {
 	file *os.File
-	mmap mmap.MMap
+	mmap gommap.MMap
 	size uint64
 }
 
-func NewIndex(pf *os.File, c Config) (*Index, error) {
-	// Usar el archivo recibido directamente sin abrirlo de nuevo
-	data, err := mmap.Map(pf, mmap.RDWR, 0)
+func newIndex(f *os.File, c Config) (*index, error) {
+	idx := &index{
+		file: f,
+	}
+	fi, err := os.Stat(f.Name())
 	if err != nil {
-		return nil, fmt.Errorf("error mapping file: %v", err)
+		return nil, err
 	}
-
-	return &Index{
-		file: pf,
-		mmap: data,
-		size: c.IndexWidth, // Suponiendo que 'Width' es un campo de la estructura 'Config'
-	}, nil
+	idx.size = uint64(fi.Size())
+	if err = os.Truncate(
+		f.Name(), int64(c.Segment.MaxIndexBytes),
+	); err != nil {
+		return nil, err
+	}
+	if idx.mmap, err = gommap.Map(
+		idx.file.Fd(),
+		gommap.PROT_READ|gommap.PROT_WRITE,
+		gommap.MAP_SHARED,
+	); err != nil {
+		return nil, err
+	}
+	return idx, nil
 }
 
-func (i *Index) Read(in int64) (uint32, uint64, error) {
-	if i.size == 0 {
-		return 0, 0, fmt.Errorf("index not initialized")
+func (i *index) Close() error {
+	if err := i.mmap.Sync(gommap.MS_ASYNC); err != nil {
+		return err
 	}
 
+	if err := i.file.Sync(); err != nil {
+		return err
+	}
+
+	if err := i.file.Truncate(int64(i.size)); err != nil {
+		return err
+	}
+
+	return i.file.Close()
+
+}
+
+func (i *index) Read(in int64) (out uint32, pos uint64, err error) {
+	if i.size == 0 {
+		return 0, 0, io.EOF
+	}
 	if in == -1 {
-		return 0, 0, fmt.Errorf("index out of range")
+		out = uint32((i.size / entWidth) - 1)
+	} else {
+		out = uint32(in)
 	}
-
-	pos := uint64(in) * EntryWidth
-	if i.size < pos+EntryWidth {
-		return 0, 0, fmt.Errorf("index out of range")
+	pos = uint64(out) * entWidth
+	if i.size < pos+entWidth {
+		return 0, 0, io.EOF
 	}
-
-	offBytes := i.mmap[pos : pos+OffWidth]
-	posBytes := i.mmap[pos+OffWidth : pos+EntryWidth]
-
-	off := binary.LittleEndian.Uint32(offBytes)
-	p := binary.LittleEndian.Uint64(posBytes)
-
-	return off, p, nil
+	out = enc.Uint32(i.mmap[pos : pos+offWidth])
+	pos = enc.Uint64(i.mmap[pos+offWidth : pos+entWidth])
+	return out, pos, nil
 }
-
-func (i *Index) Write(off uint32, pos uint64) error {
-	if i.size == 0 {
-		return fmt.Errorf("index not initialized")
+func (i *index) Write(off uint32, pos uint64) error {
+	if uint64(len(i.mmap)) < i.size+entWidth {
+		return io.EOF
 	}
 
-	// Calcular la posición del índice basado en 'off'
-	idxPos := uint64(off) * EntryWidth
-	if idxPos+EntryWidth > uint64(i.size) {
-		return fmt.Errorf("index out of range")
-	}
-
-	// Crear los bytes para 'off' y 'pos'
-	offBytes := make([]byte, OffWidth)
-	posBytes := make([]byte, PossWidth)
-
-	binary.LittleEndian.PutUint32(offBytes, off)
-	binary.LittleEndian.PutUint64(posBytes, pos)
-
-	// Copiar los bytes en la memoria mapeada
-	copy(i.mmap[idxPos:idxPos+OffWidth], offBytes)
-	copy(i.mmap[idxPos+OffWidth:idxPos+EntryWidth], posBytes)
-
+	enc.PutUint32(i.mmap[i.size:i.size+offWidth], off)
+	enc.PutUint64(i.mmap[i.size+offWidth:i.size+entWidth], pos)
+	i.size += uint64(entWidth)
 	return nil
 }
 
-func (i *Index) Close() error {
-	if err := i.mmap.Unmap(); err != nil {
-		return fmt.Errorf("error unmapping file: %v", err)
-	}
-	return i.file.Close()
-}
-
-func (i *Index) Name() string {
+func (i *index) Name() string {
 	return i.file.Name()
 }

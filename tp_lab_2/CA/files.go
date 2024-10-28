@@ -27,5 +27,5 @@ func configFile(filename string) string {
 	}
 
 	// modify this
-	return filepath.Join(homeDir, "/0228892_SistemasDistribuidos_/tp_lab_2/", filename)
+	return filepath.Join(homeDir, "0228892_SistemasDistribuidos_", "tp_lab_2", "CA", filename)
 }

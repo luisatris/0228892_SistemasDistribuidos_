@@ -1,6 +1,6 @@
 # Esto nos ayuda a posicionar nuestros config files en una carpeta dentro de nuestro proyecto
 
-CONFIG_PATH=${HOME}/0228892_SistemasDistribuidos_/tp_lab_2/.certs
+CONFIG_PATH=${HOME}/Documents/0228892_SistemasDistribuidos_/tp_lab_2/.tp_lab_2
 .PHONY: init
 
 init:
@@ -21,13 +21,6 @@ gencert:
 		-config=CA/ca-config.json \
 		-profile=server \
 		CA/server-csr.json | cfssljson -bare server
-
-	cfssl gencert \
-		-ca=ca.pem \
-		-ca-key=ca-key.pem \
-		-config=CA/ca-config.json \
-		-profile=client \
-		CA/client-csr.json | cfssljson -bare client
 
 	cfssl gencert \
 		-ca=ca.pem \

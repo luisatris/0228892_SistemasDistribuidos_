@@ -1,0 +1,65 @@
+# Default values for mi-chart.
+replicaCount: 1
+
+image:
+  repository: mi-app
+  pullPolicy: IfNotPresent
+  tag: latest
+
+imagePullSecrets: []
+
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  automount: true
+  annotations: {}
+  name: ""
+
+podAnnotations: {}
+podLabels: {}
+
+podSecurityContext: {}
+
+securityContext: {}
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts:
+    - host: chart-example.local
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  tls: []
+
+resources: {}
+
+# Liveness y Readiness probes no son necesarios para pruebas, se pueden deshabilitar.
+livenessProbe: null
+readinessProbe: null
+
+autoscaling:
+  enabled: false
+
+# Configuración de pruebas:
+command:
+  - go
+  - test
+  - ./server_test.go
+args: []
+
+volumes: []
+volumeMounts: []
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}

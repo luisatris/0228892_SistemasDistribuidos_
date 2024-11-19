@@ -1,0 +1,21 @@
+# Usa una imagen base con la versión de Go que necesitas
+FROM golang:1.23.1-alpine
+
+# Configura el directorio de trabajo
+WORKDIR /app
+
+# Copia los archivos go.mod y go.sum
+COPY go.mod . 
+COPY go.sum .
+
+# Descarga las dependencias
+RUN go mod download
+
+# Copia el resto del código
+COPY . .
+
+# Instalar dependencias y preparar el entorno
+RUN go install
+
+# Ejecutar los tests cuando se inicie el contenedor
+CMD ["go", "test", "./server_test.go"]

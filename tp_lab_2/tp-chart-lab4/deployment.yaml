@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: test-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: myapp-with-tests
+  template:
+    metadata:
+      labels:
+        app: myapp-with-tests
+    spec:
+      containers:
+      - name: myapp-with-tests
+        image: <your-username>/myapp-with-tests:latest
+        imagePullPolicy: Always
+        command: ["go", "test", "./server_test.go"]

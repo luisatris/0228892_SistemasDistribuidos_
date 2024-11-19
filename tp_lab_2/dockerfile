@@ -14,8 +14,11 @@ RUN go mod download
 # Copia el resto del código
 COPY . .
 
-# Instalar dependencias y preparar el entorno
-RUN go install
+# Compila las pruebas
+RUN go test -c -o server.test ./server/Server_test.go
 
-# Ejecutar los tests cuando se inicie el contenedor
-CMD ["go", "test", "./server_test.go"]
+# Copia el archivo ejecutable de las pruebas al contenedor
+COPY server.test .
+
+# Ejecuta las pruebas
+CMD ["./server.test", "-test.v"]

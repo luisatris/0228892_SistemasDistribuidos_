@@ -1,9 +1,9 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "tp-chart-lab4.fullname" . }}
+  name: {{ include "chaniprime-chart.fullname" . }}
   labels:
-    {{- include "tp-chart-lab4.labels" . | nindent 4 }}
+    {{- include "chaniprime-chart.labels" . | nindent 4 }}
 spec:
   type: {{ .Values.service.type }}
   ports:
@@ -12,4 +12,4 @@ spec:
       protocol: TCP
       name: http
   selector:
-    {{- include "tp-chart-lab4.selectorLabels" . | nindent 4 }}
+    {{- include "chaniprime-chart.selectorLabels" . | nindent 4 }}

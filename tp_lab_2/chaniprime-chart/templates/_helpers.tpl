@@ -1,7 +1,7 @@
 {{/*
 Expand the name of the chart.
 */}}
-{{- define "tp-chart-lab4.name" -}}
+{{- define "chaniprime-chart.name" -}}
 {{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
@@ -10,7 +10,7 @@ Create a default fully qualified app name.
 We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
 If release name contains chart name it will be used as a full name.
 */}}
-{{- define "tp-chart-lab4.fullname" -}}
+{{- define "chaniprime-chart.fullname" -}}
 {{- if .Values.fullnameOverride }}
 {{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" }}
 {{- else }}
@@ -26,16 +26,16 @@ If release name contains chart name it will be used as a full name.
 {{/*
 Create chart name and version as used by the chart label.
 */}}
-{{- define "tp-chart-lab4.chart" -}}
+{{- define "chaniprime-chart.chart" -}}
 {{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
 {{/*
 Common labels
 */}}
-{{- define "tp-chart-lab4.labels" -}}
-helm.sh/chart: {{ include "tp-chart-lab4.chart" . }}
-{{ include "tp-chart-lab4.selectorLabels" . }}
+{{- define "chaniprime-chart.labels" -}}
+helm.sh/chart: {{ include "chaniprime-chart.chart" . }}
+{{ include "chaniprime-chart.selectorLabels" . }}
 {{- if .Chart.AppVersion }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
@@ -45,17 +45,17 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{/*
 Selector labels
 */}}
-{{- define "tp-chart-lab4.selectorLabels" -}}
-app.kubernetes.io/name: {{ include "tp-chart-lab4.name" . }}
+{{- define "chaniprime-chart.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "chaniprime-chart.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
 {{/*
 Create the name of the service account to use
 */}}
-{{- define "tp-chart-lab4.serviceAccountName" -}}
+{{- define "chaniprime-chart.serviceAccountName" -}}
 {{- if .Values.serviceAccount.create }}
-{{- default (include "tp-chart-lab4.fullname" .) .Values.serviceAccount.name }}
+{{- default (include "chaniprime-chart.fullname" .) .Values.serviceAccount.name }}
 {{- else }}
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}

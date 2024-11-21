@@ -15,10 +15,11 @@ RUN go mod download
 COPY . .
 
 # Compila las pruebas
-RUN go test -c -o server.test ./server/Server_test.go
+RUN go test -v ./...
 
 # Copia el archivo ejecutable de las pruebas al contenedor
-COPY server.test .
+#COPY ./server/Server_test.test .
+RUN cp ./server/Server_test.test .
 
 # Ejecuta las pruebas
-CMD ["./server.test", "-test.v"]
+CMD ["./Server_test.go", "-test.v"]

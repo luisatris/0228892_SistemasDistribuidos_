@@ -2,14 +2,14 @@
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: {{ include "chaniprime-chart.fullname" . }}
+  name: {{ include "chani-chart.fullname" . }}
   labels:
-    {{- include "chaniprime-chart.labels" . | nindent 4 }}
+    {{- include "chani-chart.labels" . | nindent 4 }}
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: {{ include "chaniprime-chart.fullname" . }}
+    name: {{ include "chani-chart.fullname" . }}
   minReplicas: {{ .Values.autoscaling.minReplicas }}
   maxReplicas: {{ .Values.autoscaling.maxReplicas }}
   metrics:

@@ -1,7 +1,7 @@
 {{/*
 Expand the name of the chart.
 */}}
-{{- define "chaniprime-chart.name" -}}
+{{- define "chani-chart.name" -}}
 {{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
@@ -10,7 +10,7 @@ Create a default fully qualified app name.
 We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
 If release name contains chart name it will be used as a full name.
 */}}
-{{- define "chaniprime-chart.fullname" -}}
+{{- define "chani-chart.fullname" -}}
 {{- if .Values.fullnameOverride }}
 {{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" }}
 {{- else }}
@@ -26,16 +26,16 @@ If release name contains chart name it will be used as a full name.
 {{/*
 Create chart name and version as used by the chart label.
 */}}
-{{- define "chaniprime-chart.chart" -}}
+{{- define "chani-chart.chart" -}}
 {{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
 {{/*
 Common labels
 */}}
-{{- define "chaniprime-chart.labels" -}}
-helm.sh/chart: {{ include "chaniprime-chart.chart" . }}
-{{ include "chaniprime-chart.selectorLabels" . }}
+{{- define "chani-chart.labels" -}}
+helm.sh/chart: {{ include "chani-chart.chart" . }}
+{{ include "chani-chart.selectorLabels" . }}
 {{- if .Chart.AppVersion }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
@@ -45,17 +45,17 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{/*
 Selector labels
 */}}
-{{- define "chaniprime-chart.selectorLabels" -}}
-app.kubernetes.io/name: {{ include "chaniprime-chart.name" . }}
+{{- define "chani-chart.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "chani-chart.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
 {{/*
 Create the name of the service account to use
 */}}
-{{- define "chaniprime-chart.serviceAccountName" -}}
+{{- define "chani-chart.serviceAccountName" -}}
 {{- if .Values.serviceAccount.create }}
-{{- default (include "chaniprime-chart.fullname" .) .Values.serviceAccount.name }}
+{{- default (include "chani-chart.fullname" .) .Values.serviceAccount.name }}
 {{- else }}
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}

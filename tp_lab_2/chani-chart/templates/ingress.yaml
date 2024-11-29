@@ -2,9 +2,9 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: {{ include "chaniprime-chart.fullname" . }}
+  name: {{ include "chani-chart.fullname" . }}
   labels:
-    {{- include "chaniprime-chart.labels" . | nindent 4 }}
+    {{- include "chani-chart.labels" . | nindent 4 }}
   {{- with .Values.ingress.annotations }}
   annotations:
     {{- toYaml . | nindent 4 }}
@@ -35,7 +35,7 @@ spec:
             {{- end }}
             backend:
               service:
-                name: {{ include "chaniprime-chart.fullname" $ }}
+                name: {{ include "chani-chart.fullname" $ }}
                 port:
                   number: {{ $.Values.service.port }}
           {{- end }}

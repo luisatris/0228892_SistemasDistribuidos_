@@ -7,7 +7,7 @@ spec:
     spec:
       containers:
       - name: test-container
-        image: titoprime48/chaniprime:latest
-        command: ["./server.test", "-test.v"]
+        image: chani-imagen:latest
+        command: ["./test-runner"]
       restartPolicy: Never
   backoffLimit: 0

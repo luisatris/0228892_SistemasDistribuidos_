@@ -17,7 +17,7 @@ var (
 	ACLPolicyFile        = configFile("policy.csv")
 )
 
-func configFile(filename string) string {
+/*func configFile(filename string) string {
 	if dir := os.Getenv("CONFIG_DIR"); dir != "" {
 		return filepath.Join(dir, filename)
 	}
@@ -28,4 +28,14 @@ func configFile(filename string) string {
 
 	// modify this
 	return filepath.Join(homeDir, "Documents/0228892_SistemasDistribuidos_", "tp_lab_2", ".tp_lab_2", filename)
+
+}*/
+
+func configFile(filename string) string {
+	if dir := os.Getenv("CONFIG_DIR"); dir != "" {
+		return filepath.Join(dir, filename)
+	}
+
+	// modify this
+	return filepath.Join("/app/test/", filename)
 }

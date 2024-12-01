@@ -5,6 +5,10 @@ FROM golang:latest
 RUN mkdir -p /app
 WORKDIR /app
 
+# Instala make y gcc para compilar
+RUN apt-get update && \
+    apt-get install -y make gcc
+
 # Copia los archivos go.mod y go.sum para gestionar dependencias
 COPY go.mod go.sum ./
 
@@ -16,3 +20,5 @@ COPY . .
 
 # Ejecuta las pruebas directamente sin necesidad de compilar un binario
 CMD ["go", "test", "-v", "./..."]
+
+RUN makefile -f dockerfile

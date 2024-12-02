@@ -4,20 +4,14 @@ FROM golang:latest
 # Crea el directorio de trabajo
 RUN mkdir -p /app
 WORKDIR /app
-<<<<<<< HEAD
+
 RUN apt-get update && apt-get install -y \
     wget \
     && wget https://pkg.cfssl.org/R1.2/cfssl_linux-amd64 -O /usr/local/bin/cfssl \
     && wget https://pkg.cfssl.org/R1.2/cfssljson_linux-amd64 -O /usr/local/bin/cfssljson \
     && chmod +x /usr/local/bin/cfssl /usr/local/bin/cfssljson \
     && apt-get clean
-=======
 
-# Instala make y gcc para compilar
-RUN apt-get update && \
-    apt-get install -y make gcc
-
->>>>>>> eb18a22bc47995c76773870704c80c8249235032
 # Copia los archivos go.mod y go.sum para gestionar dependencias
 RUN make -f dockermakefile init
 RUN make -f dockermakefile gencert

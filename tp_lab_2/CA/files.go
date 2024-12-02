@@ -31,13 +31,21 @@ func configFile(filename string) string {
 
 }
 
+<<<<<<< HEAD
 /*
 func configFile(filename string) string {
+=======
+/*func configFile(filename string) string {
+>>>>>>> eb18a22bc47995c76773870704c80c8249235032
 	if dir := os.Getenv("CONFIG_DIR"); dir != "" {
 		return filepath.Join(dir, filename)
 	}
 
 	// modify this
-	return filepath.Join("/app/test/", filename)
+	return filepath.Join("/server/", filename)
 }
+<<<<<<< HEAD
 */
+=======
+*/
+>>>>>>> eb18a22bc47995c76773870704c80c8249235032
